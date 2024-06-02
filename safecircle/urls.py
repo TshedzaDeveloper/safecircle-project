@@ -21,13 +21,13 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include(('core.urls', 'core'), namespace='core')),
-    path('users/', include(('core.urls', 'users'), namespace='users')),
-    path('reports/', include(('reports.urls', 'reports'), namespace='reports')),
-    path('safecircles/', include(('safecircles.urls', 'safecircles'), namespace='safecircles')),
-    path('notifications/', include(('notifications.urls', 'notifications'), namespace='notifications')),
+    path('', include('core.urls')),
+    path('reports/', include('reports.urls')),
+    path('safecircles/', include('safecircles.urls')),
+    path('users/', include('users.urls')),
 ]
 
+# Serve media files in development
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
