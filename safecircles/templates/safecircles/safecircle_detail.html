@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ safecircle.name }} - SafeCircle{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h2 class="h4 mb-0">{{ safecircle.name }}</h2>
+                    {% if user == safecircle.creator %}
+                    <div class="btn-group">
+                        <a href="{% url 'safecircles:edit_safecircle' safecircle.id %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        <a href="{% url 'safecircles:delete_safecircle' safecircle.id %}" class="btn btn-outline-danger btn-sm">
+                            <i class="fas fa-trash"></i> Delete
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <p class="card-text">{{ safecircle.description }}</p>
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <p><strong><i class="fas fa-map-marker-alt"></i> Location:</strong> {{ safecircle.location }}</p>
+                            <p><strong><i class="fas fa-ruler"></i> Safety Radius:</strong> {{ safecircle.radius }} meters</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong><i class="fas fa-users"></i> Members:</strong> {{ safecircle.members.count }}</p>
+                            <p><strong><i class="fas fa-globe"></i> Status:</strong> 
+                                {% if safecircle.is_public %}
+                                    <span class="badge bg-success">Public</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Private</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3 class="h5 mb-0">Recent Activity</h3>
+                </div>
+                <div class="card-body">
+                    {% if recent_activity %}
+                        <div class="list-group">
+                            {% for activity in recent_activity %}
+                                <div class="list-group-item">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ activity.user.username }}</h6>
+                                        <small class="text-muted">{{ activity.timestamp|timesince }} ago</small>
+                                    </div>
+                                    <p class="mb-1">{{ activity.message }}</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No recent activity</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3 class="h5 mb-0">Members</h3>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for member in safecircle.members.all %}
+                            <div class="list-group-item">
+                                <div class="d-flex align-items-center">
+                                    <img src="{{ member.profile.profile_picture.url|default:'/static/images/default-avatar.png' }}" 
+                                         class="rounded-circle me-2" 
+                                         width="32" 
+                                         height="32" 
+                                         alt="{{ member.username }}">
+                                    <div>
+                                        <h6 class="mb-0">{{ member.username }}</h6>
+                                        {% if member == safecircle.creator %}
+                                            <small class="text-muted">Creator</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="h5 mb-0">Quick Actions</h3>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#checkInModal">
+                            <i class="fas fa-map-marker-alt"></i> Check In
+                        </button>
+                        <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#alertModal">
+                            <i class="fas fa-exclamation-triangle"></i> Send Alert
+                        </button>
+                        {% if user not in safecircle.members.all %}
+                            <form method="post" action="{% url 'safecircles:join_safecircle' safecircle.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success w-100">
+                                    <i class="fas fa-user-plus"></i> Join Circle
+                                </button>
+                            </form>
+                        {% else %}
+                            <form method="post" action="{% url 'safecircles:leave_safecircle' safecircle.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger w-100">
+                                    <i class="fas fa-user-minus"></i> Leave Circle
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Check In Modal -->
+<div class="modal fade" id="checkInModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Check In</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{% url 'safecircles:check_in' safecircle.id %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="checkInMessage" class="form-label">Message (optional)</label>
+                        <textarea class="form-control" id="checkInMessage" name="message" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Check In</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alert Modal -->
+<div class="modal fade" id="alertModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Send Alert</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{% url 'safecircles:send_alert' safecircle.id %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="alertType" class="form-label">Alert Type</label>
+                        <select class="form-select" id="alertType" name="alert_type" required>
+                            <option value="emergency">Emergency</option>
+                            <option value="suspicious">Suspicious Activity</option>
+                            <option value="general">General Alert</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="alertMessage" class="form-label">Message</label>
+                        <textarea class="form-control" id="alertMessage" name="message" rows="3" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-warning">Send Alert</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

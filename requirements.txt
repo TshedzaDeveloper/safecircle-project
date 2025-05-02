@@ -1,0 +1,7 @@
+Django==5.2
+djangorestframework==3.16.0
+django-crispy-forms==2.4
+crispy-bootstrap5==2025.4
+python-dotenv==1.1.0
+leaflet==0.0.3
+Pillow==10.2.0 

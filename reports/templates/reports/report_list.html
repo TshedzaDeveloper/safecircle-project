@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Crime Reports - SafeCircle{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h1 class="display-4">Crime Reports</h1>
+        </div>
+        <div class="col-md-6 text-end">
+            <a href="{% url 'reports:create_report' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Submit New Report
+            </a>
+        </div>
+    </div>
+
+    <!-- Search and Filter Section -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <input type="text" name="search" class="form-control" placeholder="Search reports..." value="{{ request.GET.search }}">
+                </div>
+                <div class="col-md-3">
+                    <select name="type" class="form-select">
+                        <option value="">All Crime Types</option>
+                        {% for value, label in crime_types %}
+                            <option value="{{ value }}" {% if request.GET.type == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Filter</button>
+                </div>
+                <div class="col-md-2">
+                    <a href="{% url 'reports:report_list' %}" class="btn btn-outline-secondary w-100">Reset</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Reports List -->
+    <div class="row">
+        {% for report in reports %}
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">{{ report.get_type_display }}</h5>
+                        <span class="badge {% if report.status == 'resolved' %}bg-success{% elif report.status == 'investigating' %}bg-warning{% else %}bg-secondary{% endif %}">
+                            {{ report.get_status_display }}
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">{{ report.description|truncatewords:30 }}</p>
+                        <p class="text-muted small">
+                            <i class="fas fa-clock"></i> {{ report.timestamp|timesince }} ago
+                            {% if not report.is_anonymous %}
+                                <br>
+                                <i class="fas fa-user"></i> {{ report.reporter.username }}
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="card-footer">
+                        <a href="{% url 'reports:report_detail' report.id %}" class="btn btn-outline-primary btn-sm">
+                            View Details
+                        </a>
+                        {% if report.reporter == user or user.is_staff %}
+                            <a href="{% url 'reports:edit_report' report.id %}" class="btn btn-outline-secondary btn-sm">
+                                Edit
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    No crime reports found. Be the first to submit a report!
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if reports.has_other_pages %}
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if reports.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ reports.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}">Previous</a>
+                    </li>
+                {% endif %}
+                
+                {% for num in reports.paginator.page_range %}
+                    <li class="page-item {% if reports.number == num %}active{% endif %}">
+                        <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}">{{ num }}</a>
+                    </li>
+                {% endfor %}
+                
+                {% if reports.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ reports.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}">Next</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://kit.fontawesome.com/your-fontawesome-kit.js"></script>
+{% endblock %} 

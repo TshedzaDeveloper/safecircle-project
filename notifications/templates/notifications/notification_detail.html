@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ notification.title }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-3xl mx-auto">
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <div class="mb-6">
+                <h1 class="text-2xl font-bold text-gray-800">{{ notification.title }}</h1>
+                <p class="text-sm text-gray-500 mt-2">
+                    {{ notification.created_at|date:"F j, Y, g:i a" }}
+                </p>
+            </div>
+
+            <div class="prose max-w-none">
+                <p class="text-gray-700">{{ notification.message }}</p>
+            </div>
+
+            {% if notification.link %}
+                <div class="mt-6">
+                    <a href="{{ notification.link }}" 
+                       class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        View Details
+                        <svg class="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                        </svg>
+                    </a>
+                </div>
+            {% endif %}
+
+            <div class="mt-8 pt-6 border-t border-gray-200">
+                <a href="{% url 'notifications:notification_list' %}" 
+                   class="text-blue-600 hover:text-blue-800">
+                    ← Back to Notifications
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

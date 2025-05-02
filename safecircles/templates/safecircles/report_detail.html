@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ report.title }} - Report{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Report Details -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h2 class="h4 mb-0">{{ report.title }}</h2>
+                    <span class="badge {% if report.status == 'active' %}bg-danger{% elif report.status == 'resolved' %}bg-success{% else %}bg-secondary{% endif %}">
+                        {{ report.status|title }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <p class="card-text">{{ report.description }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <i class="fas fa-user"></i> Reported by {{ report.user.username }}
+                            </small>
+                            <small class="text-muted">
+                                <i class="fas fa-clock"></i> {{ report.created_at|timesince }} ago
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- Report Photos -->
+                    {% if report.photos.all %}
+                        <div class="mb-4">
+                            <h5 class="mb-3">Photos</h5>
+                            <div class="row g-3">
+                                {% for photo in report.photos.all %}
+                                    <div class="col-md-4">
+                                        <div class="card">
+                                            <img src="{{ photo.image.url }}" 
+                                                 class="card-img-top" 
+                                                 alt="Report photo"
+                                                 style="height: 200px; object-fit: cover;">
+                                            <div class="card-body">
+                                                <p class="card-text">
+                                                    <small class="text-muted">
+                                                        Added {{ photo.uploaded_at|timesince }} ago
+                                                    </small>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <!-- Location -->
+                    <div class="mb-4">
+                        <h5 class="mb-3">Location</h5>
+                        <div id="map" style="height: 300px;"></div>
+                        <p class="mt-2">
+                            <i class="fas fa-map-marker-alt"></i> 
+                            {{ report.location_description }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comments Section -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="h5 mb-0">Comments</h3>
+                </div>
+                <div class="card-body">
+                    {% if report.comments.all %}
+                        <div class="list-group mb-4">
+                            {% for comment in report.comments.all %}
+                                <div class="list-group-item">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ comment.user.username }}</h6>
+                                        <small class="text-muted">{{ comment.created_at|timesince }} ago</small>
+                                    </div>
+                                    <p class="mb-1">{{ comment.text }}</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No comments yet</p>
+                    {% endif %}
+
+                    <!-- Add Comment Form -->
+                    <form method="post" action="{% url 'safecircles:add_comment' report.id %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <textarea class="form-control" name="text" rows="3" placeholder="Add a comment..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Post Comment</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-md-4">
+            <!-- Report Actions -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3 class="h5 mb-0">Actions</h3>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        {% if user == report.user %}
+                            <a href="{% url 'safecircles:edit_report' report.id %}" class="btn btn-outline-primary">
+                                <i class="fas fa-edit"></i> Edit Report
+                            </a>
+                            <form method="post" action="{% url 'safecircles:delete_report' report.id %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-danger w-100">
+                                    <i class="fas fa-trash"></i> Delete Report
+                                </button>
+                            </form>
+                        {% endif %}
+                        <button class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#addPhotoModal">
+                            <i class="fas fa-camera"></i> Add Photo
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Related Reports -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="h5 mb-0">Related Reports</h3>
+                </div>
+                <div class="card-body">
+                    {% if related_reports %}
+                        <div class="list-group">
+                            {% for related in related_reports %}
+                                <a href="{% url 'safecircles:report_detail' related.id %}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ related.title }}</h6>
+                                        <small class="text-muted">{{ related.created_at|timesince }} ago</small>
+                                    </div>
+                                    <p class="mb-1">{{ related.description|truncatechars:100 }}</p>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No related reports</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Photo Modal -->
+<div class="modal fade" id="addPhotoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Photo to Report</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{% url 'safecircles:add_photo' report.id %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="photo" class="form-label">Select Photo</label>
+                        <input type="file" class="form-control" id="photo" name="photo" accept="image/*" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="caption" class="form-label">Caption (optional)</label>
+                        <input type="text" class="form-control" id="caption" name="caption">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Upload Photo</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Initialize map
+    function initMap() {
+        const location = { lat: {{ report.latitude }}, lng: {{ report.longitude }} };
+        const map = new google.maps.Map(document.getElementById("map"), {
+            zoom: 15,
+            center: location,
+            mapTypeId: 'hybrid'  // This enables satellite view with labels
+        });
+        
+        // Add map type control
+        map.setOptions({
+            mapTypeControl: true,
+            mapTypeControlOptions: {
+                style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
+                mapTypeIds: ['roadmap', 'satellite', 'hybrid', 'terrain']
+            }
+        });
+
+        new google.maps.Marker({
+            position: location,
+            map: map,
+            title: "Report Location"
+        });
+    }
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap" async defer></script>
+{% endblock %}
+{% endblock %} 

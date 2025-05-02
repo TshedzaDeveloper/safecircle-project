@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create SafeCircle{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="h4 mb-0">Create New SafeCircle</h2>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="id_name" class="form-label">Circle Name</label>
+                            <input type="text" class="form-control" id="id_name" name="name" required>
+                            <div class="form-text">Choose a descriptive name for your SafeCircle</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_description" class="form-label">Description</label>
+                            <textarea class="form-control" id="id_description" name="description" rows="3" required></textarea>
+                            <div class="form-text">Describe the purpose and rules of your SafeCircle</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_location" class="form-label">Location</label>
+                            <input type="text" class="form-control" id="id_location" name="location" required>
+                            <div class="form-text">Enter the primary location or area for this SafeCircle</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_radius" class="form-label">Safety Radius (in meters)</label>
+                            <input type="number" class="form-control" id="id_radius" name="radius" min="100" max="5000" value="1000" required>
+                            <div class="form-text">Set the safety radius for check-ins and alerts (100-5000 meters)</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="id_is_public" name="is_public">
+                                <label class="form-check-label" for="id_is_public">
+                                    Make this SafeCircle public
+                                </label>
+                            </div>
+                            <div class="form-text">Public circles can be discovered and joined by other users</div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Create SafeCircle
+                            </button>
+                            <a href="{% url 'safecircles:home' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Home
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

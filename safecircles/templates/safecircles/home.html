@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}SafeCircles - Home{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-4">Your SafeCircles</h1>
+            <p class="lead">Connect with your community and stay safe together</p>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'safecircles:create_safecircle' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Create New SafeCircle
+            </a>
+        </div>
+    </div>
+
+    {% if user_circles %}
+    <div class="row mb-5">
+        <div class="col">
+            <h2 class="h4 mb-3">Your Circles</h2>
+            <div class="row">
+                {% for circle in user_circles %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ circle.name }}</h5>
+                            <p class="card-text text-muted">{{ circle.description|truncatechars:100 }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-primary">{{ circle.get_member_count }} members</span>
+                                <a href="{% url 'safecircles:circle_detail' circle.id %}" class="btn btn-sm btn-outline-primary">
+                                    View Circle
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <h4 class="alert-heading">No SafeCircles Yet</h4>
+        <p>You haven't joined or created any SafeCircles yet. Create a new one or join an existing circle to get started!</p>
+        <hr>
+        <div class="d-flex gap-2">
+            <a href="{% url 'safecircles:create_safecircle' %}" class="btn btn-primary">Create SafeCircle</a>
+            <a href="{% url 'safecircles:join_safecircle' %}" class="btn btn-outline-primary">Join SafeCircle</a>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if public_circles %}
+    <div class="row">
+        <div class="col">
+            <h2 class="h4 mb-3">Public SafeCircles</h2>
+            <div class="row">
+                {% for circle in public_circles %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ circle.name }}</h5>
+                            <p class="card-text text-muted">{{ circle.description|truncatechars:100 }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-primary">{{ circle.get_member_count }} members</span>
+                                <a href="{% url 'safecircles:join_safecircle' %}" class="btn btn-sm btn-outline-primary">
+                                    Join Circle
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %} 

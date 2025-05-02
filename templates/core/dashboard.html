@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <!-- Quick Actions -->
+        <div class="col-md-4">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'reports:create_report' %}" class="btn btn-danger">
+                            <i class="fas fa-exclamation-triangle"></i> Report Emergency
+                        </a>
+                        <a href="{% url 'reports:report_list' %}" class="btn btn-primary">
+                            <i class="fas fa-clipboard-list"></i> View Reports
+                        </a>
+                        <a href="{% url 'safecircles:create_safecircle' %}" class="btn btn-success">
+                            <i class="fas fa-users"></i> Create SafeCircle
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Emergency Contacts -->
+            <div class="card shadow mb-4">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Emergency Contacts</h5>
+                </div>
+                <div class="card-body">
+                    {% if emergency_contacts.name %}
+                        <p><strong>Name:</strong> {{ emergency_contacts.name }}</p>
+                        <p><strong>Phone:</strong> {{ emergency_contacts.phone }}</p>
+                    {% else %}
+                        <p class="text-muted">No emergency contacts set</p>
+                    {% endif %}
+                    <a href="{% url 'core:profile' %}" class="btn btn-outline-danger btn-sm">Update Contacts</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-8">
+            <!-- Recent Activity -->
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Recent Activity</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_activity %}
+                        <div class="list-group">
+                            {% for activity in recent_activity %}
+                                <div class="list-group-item">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ activity.title }}</h6>
+                                        <small class="text-muted">{{ activity.timestamp|timesince }} ago</small>
+                                    </div>
+                                    <p class="mb-1">{{ activity.description }}</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No recent activity</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Your SafeCircles -->
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Your SafeCircles</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- SafeCircle cards will be added here -->
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">Create New SafeCircle</h5>
+                                    <p class="card-text">Start a new community safety group</p>
+                                    <a href="{% url 'safecircles:create_safecircle' %}" class="btn btn-primary">Create</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add any dashboard-specific JavaScript here
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize any dashboard widgets or features
+    });
+</script>
+{% endblock %} 

@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h2 class="h4 mb-0">Create New Report</h2>
+                    <p class="text-muted mb-0">Share information about safety concerns in your area</p>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <!-- Report Type -->
+                        <div class="mb-4">
+                            <label for="report_type" class="form-label">Report Type</label>
+                            <select name="report_type" id="report_type" class="form-select" required>
+                                <option value="">Select a type</option>
+                                <option value="crime">Crime</option>
+                                <option value="suspicious">Suspicious Activity</option>
+                                <option value="hazard">Hazard</option>
+                                <option value="other">Other</option>
+                            </select>
+                            <div class="form-text">Choose the most appropriate category for your report</div>
+                        </div>
+
+                        <!-- Title -->
+                        <div class="mb-4">
+                            <label for="title" class="form-label">Title</label>
+                            <input type="text" name="title" id="title" class="form-control" required>
+                            <div class="form-text">Provide a clear and concise title for your report</div>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="mb-4">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea name="description" id="description" class="form-control" rows="4" required></textarea>
+                            <div class="form-text">Provide detailed information about the incident or concern</div>
+                        </div>
+
+                        <!-- Location -->
+                        <div class="mb-4">
+                            <label class="form-label">Location</label>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <input type="text" name="latitude" id="latitude" class="form-control" placeholder="Latitude" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="text" name="longitude" id="longitude" class="form-control" placeholder="Longitude" required>
+                                </div>
+                            </div>
+                            <div class="form-text">Enter the exact coordinates or use the map below to select a location</div>
+                        </div>
+
+                        <!-- Location Description -->
+                        <div class="mb-4">
+                            <label for="location_description" class="form-label">Location Description</label>
+                            <input type="text" name="location_description" id="location_description" class="form-control">
+                            <div class="form-text">Provide a human-readable description of the location (e.g., "Near Main Street Park")</div>
+                        </div>
+
+                        <!-- Photos -->
+                        <div class="mb-4">
+                            <label for="photos" class="form-label">Photos</label>
+                            <input type="file" name="photos" id="photos" class="form-control" multiple accept="image/*">
+                            <div class="form-text">Upload relevant photos (optional, multiple files allowed)</div>
+                        </div>
+
+                        <!-- Map -->
+                        <div class="mb-4">
+                            <div id="map" style="height: 300px; width: 100%;" class="rounded"></div>
+                            <div class="form-text">Click on the map to set the location coordinates</div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'report_list' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-2"></i>Back to Reports
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-2"></i>Submit Report
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Initialize map
+    function initMap() {
+        const map = new google.maps.Map(document.getElementById('map'), {
+            center: { lat: 0, lng: 0 },
+            zoom: 2
+        });
+
+        // Try to get user's current location
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const pos = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+                    map.setCenter(pos);
+                    map.setZoom(15);
+                    updateCoordinates(pos);
+                },
+                () => {
+                    // Default to a central location if geolocation fails
+                    const pos = { lat: 0, lng: 0 };
+                    map.setCenter(pos);
+                    updateCoordinates(pos);
+                }
+            );
+        }
+
+        // Add click listener to map
+        map.addListener('click', (e) => {
+            updateCoordinates(e.latLng);
+        });
+
+        function updateCoordinates(latLng) {
+            document.getElementById('latitude').value = latLng.lat();
+            document.getElementById('longitude').value = latLng.lng();
+        }
+    }
+</script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap"></script>
+{% endblock %}
+{% endblock %} 

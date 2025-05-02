@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Notifications{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-3xl mx-auto">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold text-gray-800">Notifications</h1>
+            {% if unread_count > 0 %}
+            <a href="{% url 'notifications:mark_all_notifications_read' %}" 
+               class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                Mark All as Read
+            </a>
+            {% endif %}
+        </div>
+
+        {% if notifications %}
+            <div class="space-y-4">
+                {% for notification in notifications %}
+                    <div class="bg-white rounded-lg shadow-sm p-4 {% if not notification.is_read %}border-l-4 border-blue-500{% endif %}">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <h3 class="text-lg font-medium text-gray-800">{{ notification.title }}</h3>
+                                <p class="text-gray-600 mt-1">{{ notification.message }}</p>
+                                <p class="text-sm text-gray-500 mt-2">
+                                    {{ notification.created_at|timesince }} ago
+                                </p>
+                            </div>
+                            {% if not notification.is_read %}
+                                <a href="{% url 'notifications:mark_notification_read' notification.id %}" 
+                                   class="ml-4 text-blue-600 hover:text-blue-800">
+                                    Mark as read
+                                </a>
+                            {% endif %}
+                        </div>
+                        {% if notification.link %}
+                            <a href="{{ notification.link }}" 
+                               class="mt-3 inline-block text-blue-600 hover:text-blue-800">
+                                View details →
+                            </a>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-12">
+                <div class="text-gray-500">
+                    <svg class="mx-auto h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                    </svg>
+                    <h3 class="mt-2 text-lg font-medium">No notifications</h3>
+                    <p class="mt-1">You don't have any notifications at the moment.</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Report Details - SafeCircle{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+<style>
+    #map {
+        height: 300px;
+        width: 100%;
+        margin-bottom: 20px;
+    }
+    .media-preview {
+        max-width: 100%;
+        max-height: 300px;
+        margin: 10px 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">Report Details</h3>
+                    <span class="badge {% if report.status == 'resolved' %}bg-success{% elif report.status == 'investigating' %}bg-warning{% else %}bg-secondary{% endif %}">
+                        {{ report.get_status_display }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>Crime Type</h5>
+                            <p>{{ report.get_type_display }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Reported On</h5>
+                            <p>{{ report.timestamp|date:"F j, Y, g:i a" }}</p>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h5>Description</h5>
+                        <p class="lead">{{ report.description }}</p>
+                    </div>
+
+                    {% if report.media_file %}
+                        <div class="mb-4">
+                            <h5>Evidence</h5>
+                            {% if report.media_file.url|lower|slice:"-4:" == ".jpg" or report.media_file.url|lower|slice:"-5:" == ".jpeg" or report.media_file.url|lower|slice:"-4:" == ".png" %}
+                                <img src="{{ report.media_file.url }}" alt="Evidence" class="media-preview">
+                            {% elif report.media_file.url|lower|slice:"-4:" == ".mp3" or report.media_file.url|lower|slice:"-4:" == ".wav" %}
+                                <audio controls class="w-100">
+                                    <source src="{{ report.media_file.url }}" type="audio/mpeg">
+                                    Your browser does not support the audio element.
+                                </audio>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-4">
+                        <h5>Location</h5>
+                        <div id="map"></div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Reporter</h5>
+                            <p>
+                                {% if report.is_anonymous %}
+                                    Anonymous
+                                {% else %}
+                                    {{ report.reporter.username }}
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Verification Status</h5>
+                            <p>
+                                {% if report.is_verified %}
+                                    <span class="badge bg-success">Verified</span>
+                                {% else %}
+                                    <span class="badge bg-warning">Unverified</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'reports:report_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Reports
+                        </a>
+                        {% if report.reporter == user or user.is_staff %}
+                            <div>
+                                <a href="{% url 'reports:edit_report' report.id %}" class="btn btn-outline-primary">
+                                    <i class="fas fa-edit"></i> Edit Report
+                                </a>
+                                {% if user.is_staff %}
+                                    <a href="{% url 'reports:respond_to_report' report.id %}" class="btn btn-outline-warning">
+                                        <i class="fas fa-check"></i> Update Status
+                                    </a>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script>
+    // Initialize the map
+    var map = L.map('map').setView([{{ map_center.lat }}, {{ map_center.lng }}], 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    // Add a marker
+    L.marker([{{ map_center.lat }}, {{ map_center.lng }}]).addTo(map);
+</script>
+{% endblock %} 

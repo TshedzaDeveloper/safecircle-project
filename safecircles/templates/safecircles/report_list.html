@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reports - SafeCircle{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2 class="h4 mb-0">Reports</h2>
+            <p class="text-muted">View and manage safety reports in your area</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'safecircles:create_report' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-2"></i>Create Report
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label for="status" class="form-label">Status</label>
+                    <select name="status" id="status" class="form-select">
+                        <option value="">All</option>
+                        <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="in_progress" {% if request.GET.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                        <option value="resolved" {% if request.GET.status == 'resolved' %}selected{% endif %}>Resolved</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="report_type" class="form-label">Type</label>
+                    <select name="report_type" id="report_type" class="form-select">
+                        <option value="">All</option>
+                        <option value="crime" {% if request.GET.report_type == 'crime' %}selected{% endif %}>Crime</option>
+                        <option value="suspicious" {% if request.GET.report_type == 'suspicious' %}selected{% endif %}>Suspicious Activity</option>
+                        <option value="hazard" {% if request.GET.report_type == 'hazard' %}selected{% endif %}>Hazard</option>
+                        <option value="other" {% if request.GET.report_type == 'other' %}selected{% endif %}>Other</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="date" class="form-label">Date</label>
+                    <input type="date" name="date" id="date" class="form-control" value="{{ request.GET.date }}">
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Reports List -->
+    <div class="row">
+        {% for report in reports %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100">
+                {% if report.photos.first %}
+                <img src="{{ report.photos.first.image.url }}" class="card-img-top" alt="{{ report.title }}">
+                {% endif %}
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="card-title mb-0">{{ report.title }}</h5>
+                        <span class="badge bg-{{ report.status_color }}">{{ report.get_status_display }}</span>
+                    </div>
+                    <p class="card-text text-muted small">{{ report.created_at|date:"M d, Y" }}</p>
+                    <p class="card-text">{{ report.description|truncatewords:30 }}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge bg-secondary">{{ report.get_report_type_display }}</span>
+                        <a href="{% url 'safecircles:report_detail' report.id %}" class="btn btn-sm btn-outline-primary">View Details</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                No reports found. Be the first to create a report!
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if reports.has_other_pages %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if reports.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ reports.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            {% endif %}
+
+            {% for i in reports.paginator.page_range %}
+            <li class="page-item {% if reports.number == i %}active{% endif %}">
+                <a class="page-link" href="?page={{ i }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ i }}</a>
+            </li>
+            {% endfor %}
+
+            {% if reports.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ reports.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %} 

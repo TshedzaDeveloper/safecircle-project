@@ -1,0 +1,37 @@
+                <div class="mb-3">
+                    <label for="latitude" class="form-label">Latitude</label>
+                    <input type="number" step="any" class="form-control" id="latitude" name="latitude" required>
+                </div>
+                <div class="mb-3">
+                    <label for="longitude" class="form-label">Longitude</label>
+                    <input type="number" step="any" class="form-control" id="longitude" name="longitude" required>
+                </div>
+                <div class="mb-3">
+                    <button type="button" class="btn btn-outline-primary" id="getLocation">
+                        <i class="bi bi-geo-alt"></i> Use Current Location
+                    </button>
+                </div>
+
+{% block extra_js %}
+<script>
+    document.getElementById('getLocation').addEventListener('click', function() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                document.getElementById('latitude').value = position.coords.latitude;
+                document.getElementById('longitude').value = position.coords.longitude;
+                
+                // Update map marker if map is initialized
+                if (window.map && window.marker) {
+                    const newLatLng = L.latLng(position.coords.latitude, position.coords.longitude);
+                    window.marker.setLatLng(newLatLng);
+                    window.map.setView(newLatLng, 15);
+                }
+            }, function(error) {
+                alert('Error getting location: ' + error.message);
+            });
+        } else {
+            alert('Geolocation is not supported by your browser');
+        }
+    });
+</script>
+{% endblock %} 

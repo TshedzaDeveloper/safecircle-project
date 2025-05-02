@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Submit Crime Report - SafeCircle{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+<style>
+    #map {
+        height: 400px;
+        width: 100%;
+        margin-bottom: 20px;
+    }
+    .map-container {
+        position: relative;
+    }
+    .map-overlay {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 1000;
+        background: white;
+        padding: 10px;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    .leaflet-control-layers {
+        background: white;
+        padding: 5px;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Submit Crime Report</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Map Section -->
+                        <div class="map-container mb-4">
+                            <div id="map"></div>
+                            <div class="map-overlay">
+                                <p class="mb-1">Click on the map to set location</p>
+                                <small class="text-muted">Lat: <span id="lat">-25.9312</span>, Lng: <span id="lng">28.0244</span></small>
+                                <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="getLocation">
+                                    <i class="bi bi-geo-alt"></i> Use Current Location
+                                </button>
+                            </div>
+                        </div>
+                        
+                        {{ form|crispy }}
+                        
+                        <div class="form-group mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg w-100">Submit Report</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script>
+    // Initialize the map
+    var map = L.map('map').setView([{{ map_center.lat }}, {{ map_center.lng }}], 13);
+    
+    // Add base layers
+    const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    });
+
+    const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: '&copy; <a href="https://www.esri.com/">Esri</a>'
+    });
+
+    // Add layer control
+    const baseLayers = {
+        "Street View": streetLayer,
+        "Satellite View": satelliteLayer
+    };
+    
+    streetLayer.addTo(map);
+    L.control.layers(baseLayers, null, {position: 'topright'}).addTo(map);
+
+    // Add a marker
+    var marker = L.marker([{{ map_center.lat }}, {{ map_center.lng }}]).addTo(map);
+    
+    // Update marker position on map click
+    map.on('click', function(e) {
+        marker.setLatLng(e.latlng);
+        document.getElementById('lat').textContent = e.latlng.lat.toFixed(6);
+        document.getElementById('lng').textContent = e.latlng.lng.toFixed(6);
+        document.getElementById('id_latitude').value = e.latlng.lat.toFixed(6);
+        document.getElementById('id_longitude').value = e.latlng.lng.toFixed(6);
+    });
+
+    // Get current location button functionality
+    document.getElementById('getLocation').addEventListener('click', function() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                
+                // Update marker position
+                const newLatLng = L.latLng(lat, lng);
+                marker.setLatLng(newLatLng);
+                map.setView(newLatLng, 15);
+                
+                // Update coordinates display and form fields
+                document.getElementById('lat').textContent = lat.toFixed(6);
+                document.getElementById('lng').textContent = lng.toFixed(6);
+                document.getElementById('id_latitude').value = lat.toFixed(6);
+                document.getElementById('id_longitude').value = lng.toFixed(6);
+            }, function(error) {
+                alert('Error getting location: ' + error.message);
+            });
+        } else {
+            alert('Geolocation is not supported by your browser');
+        }
+    });
+
+    // Form validation
+    (function() {
+        'use strict';
+        var forms = document.querySelectorAll('.needs-validation');
+        Array.prototype.slice.call(forms).forEach(function(form) {
+            form.addEventListener('submit', function(event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    })();
+</script>
+{% endblock %} 

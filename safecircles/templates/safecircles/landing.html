@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Welcome to SafeCircle{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <h1 class="display-4 mb-4">Welcome to SafeCircle</h1>
+            <p class="lead mb-4">Join your community's safety network and stay connected with your neighbors.</p>
+            
+            <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
+                <a href="{% url 'core:login' %}" class="btn btn-primary btn-lg px-4 gap-3">Login</a>
+                <a href="{% url 'core:register' %}" class="btn btn-outline-secondary btn-lg px-4">Register</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

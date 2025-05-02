@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - SafeCircle{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Welcome Section -->
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-4">Welcome, {{ user.username }}!</h1>
+            <p class="lead">Stay connected with your SafeCircles</p>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'safecircles:create_safecircle' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Create New SafeCircle
+            </a>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Your SafeCircles</h5>
+                    <h2 class="display-4">{{ user_circles_count }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Active Members</h5>
+                    <h2 class="display-4">{{ active_members_count }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Recent Alerts</h5>
+                    <h2 class="display-4">{{ recent_alerts_count }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Check-ins Today</h5>
+                    <h2 class="display-4">{{ today_checkins_count }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Your SafeCircles -->
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h2 class="h4 mb-0">Your SafeCircles</h2>
+                </div>
+                <div class="card-body">
+                    {% if user_circles %}
+                        <div class="list-group">
+                            {% for circle in user_circles %}
+                                <a href="{% url 'safecircles:circle_detail' circle.id %}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h5 class="mb-1">{{ circle.name }}</h5>
+                                        <small class="text-muted">{{ circle.members.count }} members</small>
+                                    </div>
+                                    <p class="mb-1">{{ circle.description|truncatechars:100 }}</p>
+                                    <small class="text-muted">
+                                        <i class="fas fa-map-marker-alt"></i> {{ circle.location_area }}
+                                    </small>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <p class="text-muted">You haven't joined any SafeCircles yet.</p>
+                            <a href="{% url 'safecircles:create_safecircle' %}" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Create Your First SafeCircle
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="h4 mb-0">Recent Activity</h2>
+                </div>
+                <div class="card-body">
+                    {% if recent_activity %}
+                        <div class="list-group">
+                            {% for activity in recent_activity %}
+                                <div class="list-group-item">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ activity.user.username }}</h6>
+                                        <small class="text-muted">{{ activity.timestamp|timesince }} ago</small>
+                                    </div>
+                                    <p class="mb-1">{{ activity.message }}</p>
+                                    <small class="text-muted">
+                                        in <a href="{% url 'safecircles:circle_detail' activity.safecircle.id %}">
+                                            {{ activity.safecircle.name }}
+                                        </a>
+                                    </small>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No recent activity</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions and Public Circles -->
+        <div class="col-md-4">
+            <!-- Quick Actions -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3 class="h5 mb-0">Quick Actions</h3>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'safecircles:join_safecircle' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-user-plus"></i> Join a SafeCircle
+                        </a>
+                        <a href="{% url 'safecircles:create_safecircle' %}" class="btn btn-outline-success">
+                            <i class="fas fa-plus"></i> Create SafeCircle
+                        </a>
+                        <a href="{% url 'safecircles:check_in' %}" class="btn btn-outline-warning">
+                            <i class="fas fa-map-marker-alt"></i> Check In
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Public SafeCircles -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="h5 mb-0">Public SafeCircles</h3>
+                </div>
+                <div class="card-body">
+                    {% if public_circles %}
+                        <div class="list-group">
+                            {% for circle in public_circles %}
+                                <a href="{% url 'safecircles:circle_detail' circle.id %}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ circle.name }}</h6>
+                                        <small class="text-muted">{{ circle.members.count }} members</small>
+                                    </div>
+                                    <small class="text-muted">
+                                        <i class="fas fa-map-marker-alt"></i> {{ circle.location_area }}
+                                    </small>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No public SafeCircles available</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
